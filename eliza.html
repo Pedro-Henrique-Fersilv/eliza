@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu App de Saúde</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Define a fonte padrão para o corpo do documento */
+        body {
+            background-color: #f8f8f8; /* Cor de fundo suave, similar à imagem */
+            font-family: 'Inter', sans-serif;
+        }
+        /* Cores personalizadas para os cartões, baseadas na imagem */
+        .card-blue { background-color: #e0f2f7; }  /* Azul claro */
+        .card-footer-orange { background-color: #ffe8d6; } /* Laranja claro para o rodapé */
+        .card-green { background-color: #d4f3e9; } /* Verde claro */
+        .card-orange { background-color: #ffe8d6; } /* Laranja claro */
+        .card-purple { background-color: #e8e0f7; } /* Roxo claro */
+
+        /* Estilo para ícones SVG, garantindo que a cor do stroke seja aplicada */
+        .icon-stroke {
+            stroke: currentColor; /* Usa a cor do texto pai para o stroke */
+        }
+
+        /* Estilo para o modal de seleção de avatar */
+        .modal {
+            align-items: center;
+            background-color: rgba(0,0,0,0.4); /* Fundo escuro semi-transparente */
+            display: none; /* Escondido por padrão */
+            height: 100%;
+            justify-content: center;
+            left: 0;
+            overflow: auto; /* Permite scroll se o conteúdo for grande */
+            position: fixed; /* Fica por cima de tudo */
+            top: 0;
+            width: 100%;
+            z-index: 1000; /* Garante que esteja na frente */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: auto;
+            padding: 20px;
+            max-width: 400px;
+            text-align: center;
+            width: 90%;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:focus,
+        .close-button:hover {
+            color: black;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        /* Estilo para a barra de navegação superior */
+        .top-navbar {
+            background-color: #ffffff; /* Fundo branco para a barra */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Sombra suave */
+            left: 0;
+            position: sticky; /* Fixa a barra no topo ao rolar */
+            top: 0;
+            width: 100%;
+            z-index: 999; /* Garante que fique acima de outros elementos */
+        }
+
+        /* Estilo para a seção de login - SEM IMAGEM DE FUNDO */
+        #login-section {
+            /* Removidas as propriedades de background-image, background-size, etc. */
+            /* O fundo será o padrão do container ou do body */
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen p-0">
+    <div class="bg-white max-w-md md:p-8 rounded-3xl shadow-lg w-full" id="app-wrapper">
+
+        <nav class="flex hidden items-center justify-between p-4 rounded-t-3xl top-navbar" id="top-nav">
+            <h1 class="font-bold text-gray-800 text-xl">Meu App de Saúde</h1>
+            <button class="bg-red-500 font-bold hover:bg-red-700 px-3 py-1 rounded-full text-sm text-white focus:outline-none focus:shadow-outline" id="logout-button">Sair da Conta</button>
+        </nav>
+
+        <div class="p-6 md:p-8" id="login-section">
+            <h2 class="font-bold mb-6 text-3xl text-center">Login</h2>
+            <div class="mb-4">
+                <label class="block font-bold mb-2 text-gray-700 text-sm" for="login-name">Nome:</label>
+                <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="login-name" placeholder="Seu nome" type="text">
+            </div>
+            <div class="mb-4">
+                <label class="block font-bold mb-2 text-gray-700 text-sm" for="login-email">Email:</label>
+                <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="login-email" placeholder="seuemail@exemplo.com" type="email">
+            </div>
+            <div class="mb-6">
+                <label class="block font-bold mb-2 text-gray-700 text-sm" for="login-password">Senha:</label>
+                <input class="appearance-none border leading-tight mb-3 px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="login-password" placeholder="********" type="password">
+            </div>
+            <button class="bg-blue-500 font-bold hover:bg-blue-700 mb-4 px-4 py-2 rounded text-white w-full focus:outline-none focus:shadow-outline" id="login-button">Entrar</button>
+            <p class="text-center text-gray-600 text-sm">
+                <a class="text-blue-500 hover:text-blue-800" href="#" id="forgot-password-link">Esqueceu a senha?</a>
+            </p>
+            <p class="mt-2 text-center text-gray-600 text-sm">
+                Não tem uma conta? <a class="text-blue-500 hover:text-blue-800" href="#" id="register-link">Cadastre-se</a>
+            </p>
+        </div>
+
+        <div class="hidden p-6 md:p-8" id="register-section">
+            <button class="back-to-login-button font-semibold mb-4 text-blue-600 hover:text-blue-800">&larr; Voltar ao Login</button>
+            <h2 class="font-bold mb-6 text-3xl text-center">Cadastre-se</h2>
+            <div class="mb-4">
+                <label class="block font-bold mb-2 text-gray-700 text-sm" for="register-name">Nome:</label>
+                <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="register-name" placeholder="Seu nome completo" type="text">
+            </div>
+            <div class="mb-4">
+                <label class="block font-bold mb-2 text-gray-700 text-sm" for="register-email">Email:</label>
+                <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="register-email" placeholder="seuemail@exemplo.com" type="email">
+            </div>
+            <div class="mb-6">
+                <label class="block font-bold mb-2 text-gray-700 text-sm" for="register-password">Senha:</label>
+                <input class="appearance-none border leading-tight mb-3 px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="register-password" placeholder="Crie uma senha" type="password">
+            </div>
+            <button class="bg-green-500 font-bold hover:bg-green-700 px-4 py-2 rounded text-white w-full focus:outline-none focus:shadow-outline" id="register-button">Cadastrar</button>
+        </div>
+
+        <div class="hidden p-6 md:p-8" id="forgot-password-section">
+            <button class="back-to-login-button font-semibold mb-4 text-blue-600 hover:text-blue-800">&larr; Voltar ao Login</button>
+            <h2 class="font-bold mb-6 text-3xl text-center">Esqueci a Senha</h2>
+            <p class="mb-4 text-center text-gray-700">Insira seu email para redefinir sua senha.</p>
+            <div class="mb-4">
+                <label class="block font-bold mb-2 text-gray-700 text-sm" for="forgot-email">Email:</label>
+                <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="forgot-email" placeholder="seuemail@exemplo.com" type="email">
+            </div>
+            <button class="bg-yellow-500 font-bold hover:bg-yellow-700 px-4 py-2 rounded text-white w-full focus:outline-none focus:shadow-outline" id="reset-password-button">Redefinir Senha</button>
+        </div>
+
+        <div class="hidden p-6 md:p-8" id="logged-in-app-content">
+            <header class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="font-semibold text-3xl text-gray-800">Olá,</h1>
+                    <p class="font-bold text-4xl text-gray-900" id="user-name-display">Eliza Souza</p>
+                </div>
+                <div class="bg-f7d8c4 border-4 border-white cursor-pointer flex h-20 items-center justify-center rounded-full shadow-md text-5xl w-20 overflow-hidden" id="avatar-display" style="background-color: #f7d8c4;">
+                    <img alt="Avatar do Usuário" class="h-full object-cover w-full" id="avatar-image" src="https://via.placeholder.com/150/f7d8c4/000000?text=😊"> </div>
+            </header>
+
+            <div id="content-display-area">
+                <main class="grid grid-cols-2 gap-4" id="dashboard-main">
+                    <a class="card-green cursor-pointer flex flex-col items-center justify-center p-4 md:p-6 rounded-2xl shadow-sm text-center transition-shadow hover:shadow-md" data-target="consultas-section" href="#">
+                        <svg class="h-12 icon-stroke mb-2 text-green-700 w-12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zm7-7v4m0-2h-4" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <span class="font-medium text-gray-800 text-lg">Consultas</span>
+                    </a>
+
+                    <a class="card-blue cursor-pointer flex flex-col items-center justify-center p-4 md:p-6 rounded-2xl shadow-sm text-center transition-shadow hover:shadow-md" data-target="exames-section" href="#">
+                        <svg class="h-12 icon-stroke mb-2 text-blue-700 w-12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.001 12.001 0 002.92 12c0 4.97 3.8 9.006 8.55 9.876.83.147 1.65-.147 1.65-.147s.82-.294 1.65-.147C18.28 21.006 22 16.97 22 12a12.001 12.001 0 00-3.382-8.016z" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <span class="font-medium text-gray-800 text-lg">Exames</span>
+                    </a>
+
+                    <a class="card-orange cursor-pointer flex flex-col items-center justify-center p-4 md:p-6 rounded-2xl shadow-sm text-center transition-shadow hover:shadow-md" data-target="notificacoes-section" href="#">
+                        <svg class="h-12 icon-stroke mb-2 text-orange-700 w-12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <span class="font-medium text-gray-800 text-lg">Notificações</span>
+                    </a>
+
+                    <a class="card-purple cursor-pointer flex flex-col items-center justify-center p-4 md:p-6 rounded-2xl shadow-sm text-center transition-shadow hover:shadow-md" data-target="prontuario-section" href="#">
+                        <svg class="h-12 icon-stroke mb-2 text-purple-700 w-12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <span class="font-medium text-gray-800 text-lg">Prontuário</span>
+                    </a>
+
+                    <a class="card-purple cursor-pointer flex flex-col items-center justify-center p-4 md:p-6 rounded-2xl shadow-sm text-center transition-shadow hover:shadow-md" data-target="dados-section" href="#">
+                        <svg class="h-12 icon-stroke mb-2 text-purple-700 w-12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <span class="font-medium text-gray-800 text-lg">Dados</span>
+                    </a>
+
+                    <a class="card-footer-orange col-span-2 cursor-pointer flex items-center p-4 md:p-5 rounded-2xl shadow-sm transition-shadow hover:shadow-md" data-target="sentimento-section" href="#">
+                        <span class="mr-2 text-4xl">😊</span>
+                        <span class="mr-2 text-4xl">😐</span>
+                        <span class="mr-3 text-4xl">😞</span>
+                        <span class="font-medium text-gray-800 text-xl">Como estou me sentindo hoje?</span>
+                    </a>
+                </main>
+
+                <div class="hidden" id="consultas-section">
+                    <button class="back-button font-semibold mb-4 text-blue-600 hover:text-blue-800">&larr; Voltar</button>
+                    <h2 class="font-bold mb-4 text-2xl">Marcar Consulta</h2>
+                    <div class="mb-4">
+                        <label class="block font-bold mb-2 text-gray-700 text-sm" for="data-consulta">Data:</label>
+                        <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="data-consulta" type="date">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block font-bold mb-2 text-gray-700 text-sm" for="hora-consulta">Hora:</label>
+                        <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="hora-consulta" type="time">
+                    </div>
+                    <button class="bg-green-500 font-bold hover:bg-green-700 px-4 py-2 rounded text-white focus:outline-none focus:shadow-outline">Agendar</button>
+                </div>
+
+                <div class="hidden" id="exames-section">
+                    <button class="back-button font-semibold mb-4 text-blue-600 hover:text-blue-800">&larr; Voltar</button>
+                    <h2 class="font-bold mb-4 text-2xl">Meus Exames</h2>
+                    <div class="mb-4">
+                        <label class="block font-bold mb-2 text-gray-700 text-sm" for="anexar-exame">Anexar Novo Exame:</label>
+                        <input class="block file:bg-blue-50 file:border-0 file:font-semibold file:mr-4 file:px-4 file:py-2 file:rounded-full file:text-sm file:text-blue-700 text-gray-500 text-sm w-full hover:file:bg-blue-100" id="anexar-exame" type="file">
+                    </div>
+                    <div class="mb-4">
+                        <h3 class="font-semibold mb-2 text-lg">Exames Anexados:</h3>
+                        <ul class="list-inside list-disc text-gray-700">
+                            <li>Exame de Sangue - 10/07/2025 <button class="ml-2 text-blue-500 text-sm hover:underline">Editar</button></li>
+                            <li>Raio-X Tórax - 01/06/2025 <button class="ml-2 text-blue-500 text-sm hover:underline">Editar</button></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="hidden" id="notificacoes-section">
+                    <button class="back-button font-semibold mb-4 text-blue-600 hover:text-blue-800">&larr; Voltar</button>
+                    <h2 class="font-bold mb-4 text-2xl">Minhas Notificações</h2>
+                    <div class="mb-4">
+                        <p class="text-gray-700">Aqui você verá suas notificações e alertas.</p>
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md mt-4 text-blue-700" role="alert">
+                            <p class="font-bold">Lembrete:</p>
+                            <p>Consulta com Dr. Silva amanhã às 10:00.</p>
+                        </div>
+                        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-md mt-2 text-yellow-700" role="alert">
+                            <p class="font-bold">Novo resultado de exame disponível!</p>
+                            <p></p>
+                        </div>
+                    </div>
+                    <h3 class="font-semibold mb-2 text-lg">Configurar Alerta:</h3>
+                    <div class="mb-4">
+                        <label class="block font-bold mb-2 text-gray-700 text-sm" for="alerta-texto">Mensagem:</label>
+                        <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="alerta-texto" placeholder="Ex: Tomar remédio" type="text">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block font-bold mb-2 text-gray-700 text-sm" for="alerta-data-hora">Data e Hora:</label>
+                        <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="alerta-data-hora" type="datetime-local">
+                    </div>
+                    <button class="bg-orange-500 font-bold hover:bg-orange-700 px-4 py-2 rounded text-white focus:outline-none focus:shadow-outline">Definir Alerta</button>
+                </div>
+
+                <div class="hidden" id="prontuario-section">
+                    <button class="back-button font-semibold mb-4 text-blue-600 hover:text-blue-800">&larr; Voltar</button>
+                    <h2 class="font-bold mb-4 text-2xl">Prontuário do Paciente</h2>
+                    <div class="mb-4">
+                        <h3 class="font-semibold mb-2 text-lg">Histórico Médico:</h3>
+                        <p class="text-gray-700"><strong>Alergias:</strong> Nenhuma conhecida.</p>
+                        <p class="text-700"><strong>Condições Crônicas:</strong> Asma (controlada).</p>
+                        <p class="text-gray-700"><strong>Medicações Atuais:</strong> Salbutamol (conforme necessário).</p>
+                        <p class="text-gray-700"><strong>Última Consulta:</strong> 15/07/2025 - Check-up geral.</p>
+                    </div>
+                    <div class="mb-4">
+                        <h3 class="font-semibold mb-2 text-lg">Documentos Anexados:</h3>
+                        <ul class="list-inside list-disc text-gray-700">
+                            <li>Relatório Médico - 01/07/2025 <a class="ml-2 text-blue-500 text-sm hover:underline" href="#">Ver</a></li>
+                            <li>Prescrição de Óculos - 10/01/2024 <a class="ml-2 text-blue-500 text-sm hover:underline" href="#">Ver</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="hidden" id="dados-section">
+                    <button class="back-button font-semibold mb-4 text-blue-600 hover:text-blue-800">&larr; Voltar</button>
+                    <h2 class="font-bold mb-4 text-2xl">Meus Dados</h2>
+                    <div id="dados-display-mode">
+                        <p class="text-gray-700"><strong>Nome Completo:</strong> <span id="display-nome-completo">Eliza Souza</span></p>
+                        <p class="text-gray-700"><strong>CPF:</strong> <span id="display-cpf">XXX.XXX.XXX-XX</span></p>
+                        <p class="text-gray-700"><strong>Gênero:</strong> <span id="display-genero">Feminino</span></p>
+                        <p class="text-gray-700"><strong>Estado Civil:</strong> <span id="display-estado-civil">Solteira</span></p>
+                        <p class="text-gray-700"><strong>E-mail:</strong> <span id="display-email">eliza.souza@example.com</span></p>
+                        <p class="text-gray-700"><strong>Data de Nascimento:</strong> <span id="display-data-nascimento">01/01/1990</span></p>
+                        <p class="text-gray-700"><strong>Telefone:</strong> <span id="display-telefone">(XX) XXXX-XXXX</span></p>
+                        <p class="text-gray-700"><strong>Endereço:</strong> <span id="display-endereco">Rua das Flores, 123, Cidade, Estado</span></p>
+                        <button class="bg-purple-500 font-bold hover:bg-purple-700 mt-4 px-4 py-2 rounded text-white focus:outline-none focus:shadow-outline" id="edit-dados-button">Editar Dados</button>
+                    </div>
+
+                    <div class="hidden" id="dados-edit-mode">
+                        <div class="mb-4">
+                            <label class="block font-bold mb-2 text-gray-700 text-sm" for="input-nome-completo">Nome Completo:</label>
+                            <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="input-nome-completo" type="text">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block font-bold mb-2 text-gray-700 text-sm" for="input-cpf">CPF:</label>
+                            <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="input-cpf" type="text" placeholder="XXX.XXX.XXX-XX">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block font-bold mb-2 text-gray-700 text-sm" for="input-genero">Gênero:</label>
+                            <select class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="input-genero">
+                                <option value="Feminino">Feminino</option>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block font-bold mb-2 text-gray-700 text-sm" for="input-estado-civil">Estado Civil:</label>
+                            <select class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="input-estado-civil">
+                                <option value="Solteiro(a)">Solteiro(a)</option>
+                                <option value="Casado(a)">Casado(a)</option>
+                                <option value="Divorciado(a)">Divorciado(a)</option>
+                                <option value="Viúvo(a)">Viúvo(a)</option>
+                                <option value="União Estável">União Estável</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block font-bold mb-2 text-gray-700 text-sm" for="input-email">E-mail:</label>
+                            <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="input-email" type="email">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block font-bold mb-2 text-gray-700 text-sm" for="input-data-nascimento">Data de Nascimento:</label>
+                            <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="input-data-nascimento" type="date">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block font-bold mb-2 text-gray-700 text-sm" for="input-telefone">Telefone:</label>
+                            <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="input-telefone" type="tel">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block font-bold mb-2 text-gray-700 text-sm" for="input-endereco">Endereço:</label>
+                            <input class="appearance-none border leading-tight px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="input-endereco" type="text">
+                        </div>
+                        <button class="bg-green-500 font-bold hover:bg-green-700 mt-4 px-4 py-2 rounded text-white focus:outline-none focus:shadow-outline" id="save-dados-button">Salvar</button>
+                    </div>
+                </div>
+
+                <div class="hidden" id="sentimento-section">
+                    <button class="back-button font-semibold mb-4 text-blue-600 hover:text-blue-800">&larr; Voltar</button>
+                    <h2 class="font-bold mb-4 text-2xl">Como você está se sentindo hoje?</h2>
+                    <div class="flex items-center justify-around mb-6 text-6xl">
+                        <span class="cursor-pointer transition-transform hover:scale-110">😊</span>
+                        <span class="cursor-pointer transition-transform hover:scale-110">😐</span>
+                        <span class="cursor-pointer transition-transform hover:scale-110">😞</span>
+                    </div>
+                    <textarea class="appearance-none border h-24 leading-tight mb-4 px-3 py-2 rounded shadow text-gray-700 w-full focus:outline-none focus:shadow-outline" id="sentimento-text-area" placeholder="Conte-nos mais sobre como você se sente..."></textarea>
+                    <button class="bg-orange-500 font-bold hover:bg-orange-700 px-4 py-2 rounded text-white focus:outline-none focus:shadow-outline" id="save-sentimento-button">Salvar Sentimento</button>
+                    <p class="hidden mt-2 text-green-600" id="sentimento-feedback">Sentimento salvo com sucesso!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="avatar-modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-avatar-modal">&times;</span>
+            <h2 class="font-bold mb-4 text-xl">Escolha seu Avatar</h2>
+            <p class="mb-4 text-gray-700">Selecione uma imagem da sua galeria:</p>
+            <input accept="image/*" class="block file:bg-blue-50 file:border-0 file:font-semibold file:mr-4 file:px-4 file:py-2 file:rounded-full file:text-sm file:text-blue-700 text-gray-500 text-sm w-full hover:file:bg-blue-100" id="avatar-upload" type="file">
+            <button class="bg-blue-500 font-bold hover:bg-blue-700 mt-6 px-4 py-2 rounded text-white focus:outline-none focus:shadow-outline" id="save-avatar-button">Salvar Avatar</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const appWrapper = document.getElementById('app-wrapper');
+            const topNav = document.getElementById('top-nav');
+            const loggedInAppContent = document.getElementById('logged-in-app-content');
+
+            // Telas de autenticação
+            const loginSection = document.getElementById('login-section');
+            const registerSection = document.getElementById('register-section');
+            const forgotPasswordSection = document.getElementById('forgot-password-section');
+
+            // Botões de navegação de autenticação
+            const loginNameInput = document.getElementById('login-name');
+            const loginButton = document.getElementById('login-button');
+            const forgotPasswordLink = document.getElementById('forgot-password-link');
+            const registerLink = document.getElementById('register-link');
+            const registerButton = document.getElementById('register-button');
+            const resetPasswordButton = document.getElementById('reset-password-button');
+            const backToLoginButtons = document.querySelectorAll('.back-to-login-button');
+            const logoutButton = document.getElementById('logout-button');
+
+            const dashboard = document.getElementById('dashboard-main');
+            const contentDisplayArea = document.getElementById('content-display-area');
+            // Seleciona todas as seções que terminam com '-section' dentro do contentDisplayArea
+            const sections = contentDisplayArea.querySelectorAll('div[id$="-section"]');
+            
+            // Elementos do Avatar
+            const avatarDisplay = document.getElementById('avatar-display');
+            const avatarImage = document.getElementById('avatar-image'); // O novo elemento <img>
+            const avatarModal = document.getElementById('avatar-modal');
+            const closeAvatarModal = document.getElementById('close-avatar-modal');
+            const avatarUpload = document.getElementById('avatar-upload'); // O novo input file
+            const saveAvatarButton = document.getElementById('save-avatar-button'); // O novo botão para salvar
+
+            // Elementos da seção Dados (Visualização)
+            const dadosDisplayMode = document.getElementById('dados-display-mode');
+            const dadosEditMode = document.getElementById('dados-edit-mode');
+            const editDadosButton = document.getElementById('edit-dados-button');
+            const saveDadosButton = document.getElementById('save-dados-button');
+
+            const userNameDisplay = document.getElementById('user-name-display');
+
+            // Campos de exibição
+            const displayNomeCompleto = document.getElementById('display-nome-completo');
+            const displayCpf = document.getElementById('display-cpf');
+            const displayGenero = document.getElementById('display-genero');
+            const displayEstadoCivil = document.getElementById('display-estado-civil');
+            const displayEmail = document.getElementById('display-email');
+            const displayDataNascimento = document.getElementById('display-data-nascimento');
+            const displayTelefone = document.getElementById('display-telefone');
+            const displayEndereco = document.getElementById('display-endereco');
+
+            // Campos de input para edição
+            const inputNomeCompleto = document.getElementById('input-nome-completo');
+            const inputCpf = document.getElementById('input-cpf');
+            const inputGenero = document.getElementById('input-genero');
+            const inputEstadoCivil = document.getElementById('input-estado-civil');
+            const inputEmail = document.getElementById('input-email');
+            const inputDataNascimento = document.getElementById('input-data-nascimento');
+            const inputTelefone = document.getElementById('input-telefone');
+            const inputEndereco = document.getElementById('input-endereco');
+
+            // Elementos da seção Sentimento
+            const sentimentoTextArea = document.getElementById('sentimento-text-area');
+            const saveSentimentoButton = document.getElementById('save-sentimento-button');
+            const sentimentoFeedback = document.getElementById('sentimento-feedback');
+
+            // --- Variáveis de Estado (para simular dados do usuário) ---
+            let currentUser = null; // Armazena o nome do usuário logado
+            let userAvatarUrl = 'https://via.placeholder.com/150/f7d8c4/000000?text=😊'; // URL padrão para o avatar
+            let userData = {
+                nomeCompleto: 'Eliza Souza',
+                cpf: 'XXX.XXX.XXX-XX',
+                genero: 'Feminino',
+                estadoCivil: 'Solteira',
+                email: 'eliza.souza@example.com',
+                dataNascimento: '1990-01-01', // Formato YYYY-MM-DD para input type="date"
+                telefone: '(XX) XXXX-XXXX',
+                endereco: 'Rua das Flores, 123, Cidade, Estado'
+            };
+
+            // --- Funções de Exibição de Telas ---
+            function showScreen(screenId, userName = 'Eliza Souza') {
+                // Esconde todas as seções principais
+                loginSection.classList.add('hidden');
+                registerSection.classList.add('hidden');
+                forgotPasswordSection.classList.add('hidden');
+                loggedInAppContent.classList.add('hidden');
+                topNav.classList.add('hidden'); // Esconde a barra de navegação por padrão
+
+                // Mostra a seção desejada
+                document.getElementById(screenId).classList.remove('hidden');
+
+                // Se a tela for o conteúdo do app logado, mostra a barra de navegação e atualiza o nome
+                if (screenId === 'logged-in-app-content') {
+                    topNav.classList.remove('hidden');
+                    userNameDisplay.textContent = userName; // Atualiza o nome do usuário no cabeçalho
+                    avatarImage.src = userAvatarUrl; // Garante que a imagem do avatar correta seja exibida
+                    showDashboard(); // Sempre volta para o dashboard ao fazer login
+                    updateUserDataDisplay(); // Atualiza os dados na seção "Dados"
+                } else {
+                    // Se não for a tela logada, garante que os campos de login/cadastro/recuperação sejam limpos
+                    loginNameInput.value = '';
+                    document.getElementById('login-email').value = '';
+                    document.getElementById('login-password').value = '';
+                    document.getElementById('register-name').value = '';
+                    document.getElementById('register-email').value = '';
+                    document.getElementById('register-password').value = '';
+                    document.getElementById('forgot-email').value = '';
+                }
+            }
+
+            // Função para mostrar o dashboard e esconder as outras seções de conteúdo
+            function showDashboard() {
+                dashboard.classList.remove('hidden'); // Mostra o dashboard
+                sections.forEach(section => {
+                    if (section.id !== 'dashboard-main') { // Esconde todas as outras seções
+                        section.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Função para mostrar uma seção específica de detalhes e esconder o dashboard
+            function showContentSection(sectionId) {
+                dashboard.classList.add('hidden'); // Esconde o dashboard
+                sections.forEach(section => {
+                    section.classList.add('hidden'); // Esconde todas as seções de conteúdo
+                });
+                document.getElementById(sectionId).classList.remove('hidden'); // Mostra a seção desejada
+            }
+
+            // --- Event Listeners para Navegação de Autenticação ---
+            loginButton.addEventListener('click', function() {
+                const name = loginNameInput.value.trim();
+                if (name) {
+                    currentUser = name; // Define o nome do usuário
+                    showScreen('logged-in-app-content', `Olá, ${currentUser}`);
+                } else {
+                    alert('Por favor, digite seu nome para fazer login.');
+                }
+            });
+
+            registerLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                showScreen('register-section');
+            });
+
+            forgotPasswordLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                showScreen('forgot-password-section');
+            });
+
+            backToLoginButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    showScreen('login-section');
+                });
+            });
+
+            registerButton.addEventListener('click', function() {
+                // Lógica de cadastro (apenas um placeholder)
+                alert('Cadastro realizado com sucesso! Faça login para continuar.');
+                showScreen('login-section');
+            });
+
+            resetPasswordButton.addEventListener('click', function() {
+                // Lógica de redefinição de senha (apenas um placeholder)
+                alert('Instruções de redefinição de senha enviadas para o seu email.');
+                showScreen('login-section');
+            });
+
+            logoutButton.addEventListener('click', function() {
+                currentUser = null; // Limpa o usuário logado
+                showScreen('login-section'); // Volta para a tela de login
+            });
+
+            // --- Event Listeners para os Cartões do Dashboard ---
+            const dashboardCards = dashboard.querySelectorAll('[data-target]');
+            dashboardCards.forEach(card => {
+                card.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('data-target');
+                    showContentSection(targetId);
+                });
+            });
+
+            // --- Event Listeners para os Botões "Voltar" ---
+            const backButtons = contentDisplayArea.querySelectorAll('.back-button');
+            backButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    showDashboard();
+                });
+            });
+
+            // --- Lógica do Modal de Avatar ---
+            avatarDisplay.addEventListener('click', function() {
+                avatarModal.style.display = 'flex'; // Exibe o modal
+            });
+
+            closeAvatarModal.addEventListener('click', function() {
+                avatarModal.style.display = 'none'; // Esconde o modal
+                avatarUpload.value = ''; // Limpa o input de arquivo
+            });
+
+            window.addEventListener('click', function(event) {
+                if (event.target == avatarModal) {
+                    avatarModal.style.display = 'none'; // Esconde o modal se clicar fora
+                    avatarUpload.value = ''; // Limpa o input de arquivo
+                }
+            });
+
+            // Pré-visualização da imagem selecionada
+            avatarUpload.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        // Poderíamos exibir uma pré-visualização no próprio modal aqui, se quiséssemos.
+                        // Por simplicidade, vamos apenas armazenar a URL temporariamente.
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            saveAvatarButton.addEventListener('click', function() {
+                const file = avatarUpload.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        userAvatarUrl = e.target.result; // Salva a URL da imagem
+                        avatarImage.src = userAvatarUrl; // Atualiza a imagem exibida
+                        avatarModal.style.display = 'none'; // Esconde o modal
+                        avatarUpload.value = ''; // Limpa o input de arquivo
+                        alert('Avatar atualizado com sucesso!');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('Por favor, selecione uma imagem.');
+                }
+            });
+
+            // --- Lógica da Seção de Dados ---
+            function updateUserDataDisplay() {
+                displayNomeCompleto.textContent = userData.nomeCompleto;
+                displayCpf.textContent = userData.cpf;
+                displayGenero.textContent = userData.genero;
+                displayEstadoCivil.textContent = userData.estadoCivil;
+                displayEmail.textContent = userData.email;
+                // Formata a data para exibição (DD/MM/YYYY)
+                const dateParts = userData.dataNascimento.split('-');
+                displayDataNascimento.textContent = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+                displayTelefone.textContent = userData.telefone;
+                displayEndereco.textContent = userData.endereco;
+            }
+
+            editDadosButton.addEventListener('click', function() {
+                // Preenche os inputs do formulário com os dados atuais
+                inputNomeCompleto.value = userData.nomeCompleto;
+                inputCpf.value = userData.cpf;
+                inputGenero.value = userData.genero;
+                inputEstadoCivil.value = userData.estadoCivil;
+                inputEmail.value = userData.email;
+                inputDataNascimento.value = userData.dataNascimento; // Já está no formato YYYY-MM-DD
+                inputTelefone.value = userData.telefone;
+                inputEndereco.value = userData.endereco;
+
+                dadosDisplayMode.classList.add('hidden');
+                dadosEditMode.classList.remove('hidden');
+            });
+
+            saveDadosButton.addEventListener('click', function() {
+                // Salva os novos dados
+                userData.nomeCompleto = inputNomeCompleto.value.trim();
+                userData.cpf = inputCpf.value.trim();
+                userData.genero = inputGenero.value;
+                userData.estadoCivil = inputEstadoCivil.value;
+                userData.email = inputEmail.value.trim();
+                userData.dataNascimento = inputDataNascimento.value;
+                userData.telefone = inputTelefone.value.trim();
+                userData.endereco = inputEndereco.value.trim();
+
+                updateUserDataDisplay(); // Atualiza a exibição
+                dadosEditMode.classList.add('hidden');
+                dadosDisplayMode.classList.remove('hidden');
+                alert('Dados atualizados com sucesso!');
+            });
+
+            // --- Lógica da Seção de Sentimento ---
+            saveSentimentoButton.addEventListener('click', function() {
+                const sentimento = sentimentoTextArea.value.trim();
+                if (sentimento) {
+                    console.log('Sentimento salvo:', sentimento);
+                    sentimentoFeedback.classList.remove('hidden');
+                    // Opcional: Limpar a área de texto após salvar
+                    sentimentoTextArea.value = '';
+                    setTimeout(() => {
+                        sentimentoFeedback.classList.add('hidden');
+                    }, 3000); // Esconde a mensagem após 3 segundos
+                } else {
+                    alert('Por favor, digite como você se sente antes de salvar.');
+                }
+            });
+
+            // Inicializa a tela de login ao carregar a página
+            showScreen('login-section');
+        });
+    </script>
+</body>
+</html>
